@@ -39,6 +39,12 @@ interface ReportedPost {
     likes_count: number;
     comments_count: number;
   } | null;
+  reporter: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    phone_e164: string;
+  } | null;
 }
 
 interface Comment {
@@ -81,6 +87,12 @@ export default function Reports() {
             user_id,
             likes_count,
             comments_count
+          ),
+          reporter:reported_by (
+            id,
+            name,
+            email,
+            phone_e164
           )
         `)
         .order("created_at", { ascending: false });
@@ -91,6 +103,7 @@ export default function Reports() {
       const transformedReports = (data?.map(report => ({
         ...report,
         post: report.posts,
+        reporter: report.reporter,
         status: report.status as "pending" | "resolved" | "dismissed"
       })) || []) as ReportedPost[];
 
@@ -191,7 +204,7 @@ export default function Reports() {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setComments((data as any) || []);
+        setComments(data as Comment[] || []);
       } catch (error) {
         console.error("Error fetching comments:", error);
         setComments([]);
@@ -283,8 +296,11 @@ export default function Reports() {
                           <img
                             src={report.post.image_url}
                             alt="Post image"
-                            className="w-20 h-20 object-cover rounded-md shrink-0"
-                            onClick={() => window.open(report.post?.image_url!, '_blank')}
+                            className="w-20 h-20 object-cover rounded-md shrink-0 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (report.post?.image_url) window.open(report.post.image_url, '_blank');
+                            }}
                           />
                         ) : (
                           <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center shrink-0">
@@ -300,8 +316,19 @@ export default function Reports() {
 
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-muted-foreground text-xs">Reporter ID:</span>
-                        <p className="text-xs font-mono truncate">{report.reported_by.substring(0, 16)}...</p>
+                        <span className="text-muted-foreground text-xs">Reporter:</span>
+                        {report.reporter ? (
+                          <div className="mt-1 space-y-1">
+                            <p className="text-xs font-medium">{report.reporter.name || "Unknown"}</p>
+                            {report.reporter.email && (
+                              <p className="text-xs text-muted-foreground">{report.reporter.email}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">{report.reporter.phone_e164}</p>
+                            <p className="text-xs font-mono text-muted-foreground">ID: {report.reporter.id.substring(0, 16)}...</p>
+                          </div>
+                        ) : (
+                          <p className="text-xs font-mono truncate">{report.reported_by.substring(0, 16)}...</p>
+                        )}
                       </div>
                       <div>
                         <span className="text-muted-foreground text-xs">Reason:</span>
@@ -345,7 +372,7 @@ export default function Reports() {
                     <TableRow>
                       <TableHead>Post Content</TableHead>
                       <TableHead>Image</TableHead>
-                      <TableHead>Reporter</TableHead>
+                      <TableHead>Reporter Details</TableHead>
                       <TableHead>Reason</TableHead>
                       <TableHead>Reported</TableHead>
                       <TableHead>Actions</TableHead>
@@ -381,7 +408,7 @@ export default function Reports() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => window.open(report.post?.image_url!, '_blank')}
+                                onClick={() => report.post?.image_url && window.open(report.post.image_url, '_blank')}
                               >
                                 <ExternalLink className="h-3 w-3" />
                               </Button>
@@ -391,9 +418,22 @@ export default function Reports() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <code className="text-xs bg-muted px-2 py-1 rounded">
-                            {report.reported_by.substring(0, 8)}...
-                          </code>
+                          {report.reporter ? (
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">{report.reporter.name || "Unknown"}</p>
+                              {report.reporter.email && (
+                                <p className="text-xs text-muted-foreground">{report.reporter.email}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground">{report.reporter.phone_e164}</p>
+                              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                {report.reporter.id.substring(0, 8)}...
+                              </code>
+                            </div>
+                          ) : (
+                            <code className="text-xs bg-muted px-2 py-1 rounded">
+                              {report.reported_by.substring(0, 8)}...
+                            </code>
+                          )}
                         </TableCell>
                         <TableCell>
                           {report.reason ? (
@@ -607,10 +647,24 @@ export default function Reports() {
                 {/* Report Information */}
                 <div className="border-t pt-4">
                   <h3 className="font-semibold mb-3">Report Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Reported by:</span>
-                      <p className="font-mono text-xs mt-1">{selectedPost.reported_by}</p>
+                  <div className="space-y-3 text-sm">
+                    <div className="bg-muted p-3 rounded-lg">
+                      <span className="text-muted-foreground font-medium">Reporter Details:</span>
+                      {selectedPost.reporter ? (
+                        <div className="mt-2 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{selectedPost.reporter.name || "Unknown"}</span>
+                          </div>
+                          {selectedPost.reporter.email && (
+                            <p className="text-xs text-muted-foreground">✉️ {selectedPost.reporter.email}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground">📱 {selectedPost.reporter.phone_e164}</p>
+                          <p className="font-mono text-xs text-muted-foreground">ID: {selectedPost.reporter.id}</p>
+                        </div>
+                      ) : (
+                        <p className="font-mono text-xs mt-2">{selectedPost.reported_by}</p>
+                      )}
                     </div>
                     <div>
                       <span className="text-muted-foreground">Reason:</span>

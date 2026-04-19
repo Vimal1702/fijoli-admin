@@ -15,6 +15,16 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -54,6 +64,8 @@ export default function Posts() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postIdToDelete, setPostIdToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -103,14 +115,19 @@ export default function Posts() {
     }
   };
 
-  const deletePost = async (postId: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+  const openDeleteDialog = (postId: string) => {
+    setPostIdToDelete(postId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!postIdToDelete) return;
 
     try {
       const { error } = await supabase
         .from("posts")
         .delete()
-        .eq("id", postId);
+        .eq("id", postIdToDelete);
 
       if (error) throw error;
 
@@ -119,7 +136,7 @@ export default function Posts() {
         description: "Post deleted successfully",
       });
 
-      fetchPosts(); // Refresh the list
+      fetchPosts();
     } catch (error) {
       console.error("Error deleting post:", error);
       toast({
@@ -127,6 +144,9 @@ export default function Posts() {
         description: "Failed to delete post",
         variant: "destructive",
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setPostIdToDelete(null);
     }
   };
 
@@ -274,7 +294,7 @@ export default function Posts() {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      deletePost(post.id);
+                      openDeleteDialog(post.id);
                     }}
                     className="flex-1 touch-target"
                   >
@@ -363,7 +383,7 @@ export default function Posts() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deletePost(post.id);
+                          openDeleteDialog(post.id);
                         }}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -426,6 +446,33 @@ export default function Posts() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setPostIdToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete post permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the post. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeletePost}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Post Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
