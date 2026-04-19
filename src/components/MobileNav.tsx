@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, LayoutDashboard, FileImage, Users, AlertTriangle } from "lucide-react";
+import { Menu, X, LayoutDashboard, FileImage, Users, AlertTriangle, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
@@ -23,6 +23,11 @@ const menuItems = [
         title: "Reports",
         url: "/admin/reports",
         icon: AlertTriangle,
+    },
+    {
+        title: "Support",
+        url: "/admin/supports",
+        icon: LifeBuoy,
     },
 ];
 

@@ -537,6 +537,47 @@ export type Database = {
           },
         ]
       }
+      supports: {
+        Row: {
+          created_at: string
+          id: string
+          issue_type: string | null
+          number_details: string
+          status: string
+          support_comment: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issue_type?: string | null
+          number_details: string
+          status?: string
+          support_comment: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issue_type?: string | null
+          number_details?: string
+          status?: string
+          support_comment?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_credentials: {
         Row: {
           algo: string | null

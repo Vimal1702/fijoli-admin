@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Home, FileImage, Users, AlertTriangle } from "lucide-react";
+import { Menu, X, Home, FileImage, Users, AlertTriangle, LifeBuoy } from "lucide-react";
 
 const menuItems = [
     {
@@ -22,6 +22,11 @@ const menuItems = [
         title: "Reported Posts",
         url: "/admin/reports",
         icon: AlertTriangle,
+    },
+    {
+        title: "Support",
+        url: "/admin/supports",
+        icon: LifeBuoy,
     },
 ];
 

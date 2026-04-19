@@ -5,7 +5,7 @@ import {
   FileImage,
   Users,
   AlertTriangle,
-  Settings
+  LifeBuoy,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +40,11 @@ const menuItems = [
     title: "Reported Posts",
     url: "/admin/reports",
     icon: AlertTriangle,
+  },
+  {
+    title: "Support",
+    url: "/admin/supports",
+    icon: LifeBuoy,
   },
 ];
 
